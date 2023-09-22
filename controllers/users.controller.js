@@ -7,12 +7,10 @@ const Lists = require("../models/Lists");
   exports.getUserDetails = async (req, res, next) => {
     try {
         const result = await Users.find({username:req.body.username});
-        req.username = result.username;
-        req.password = result.password;
+        req.savedPassword = result[0].password;
         next()
     } catch (error) {
         console.log(error);
-        res.send("User does not exist.");
     }
   }
 
@@ -33,11 +31,10 @@ const Lists = require("../models/Lists");
     })
     try {
       await newUser.save();
-      console
       next();
     } catch (error) {
       console.log(error);
-      res.send("something went wrong")
+      res.send({message:"something went wrong"})
     }
   }
 
@@ -50,10 +47,10 @@ const Lists = require("../models/Lists");
     try {
       const result = await newList.save();
       console.log(result);
-      res.send("New user added");
+      res.send({message:"New user added"});
     } catch (error) {
       console.log(error)
-      res.send("Failed to add user")
+      res.send({message:"Failed to add user"})
     }
   }
 
@@ -65,10 +62,10 @@ const Lists = require("../models/Lists");
       if (match === undefined) {
         next()
       }else{
-        res.status(403).send("Username in use");
+        res.status(403).send({message:"Username in use"});
       }
     } catch (error) {
       console.log(error);
-      res.send("Something went wrong")
+      res.send({message:"Something went wrong"})
     }
   }

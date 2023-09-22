@@ -3,19 +3,19 @@ let jwt = require("jsonwebtoken");
 // if password matches the in the database document, sets username and password to payload
 // and creates a jwt token
 function loginUser(req, res) {
-  const userInformation = req.body;
-  if (req.body.password == userInformation.password) {
+  if (req.body.password == req.savedPassword) {
     let jwtToken = jwt.sign(
       {
-        username: userInformation.username,
-        password: userInformation.password,
+        username: req.body.username,
+        password: req.body.password,
       },
       "secretKey",
       { expiresIn: "1h" }
     );
-    res.send(jwtToken);
+    res.send({token:jwtToken});
   } else {
-    res.send("Password Invalid");
+    console.log(`${req.body.username} ${req.body.password} ${req.savedPassword}`)
+    res.send({message:"Credentials Invalid"});
   }
 }
 
@@ -64,7 +64,7 @@ function checkUserName(req, res, next) {
   const suffix = username.slice(-10);
   console.log(suffix);
   if (suffix !== "@gmail.com") {
-    res.status(403).send("Username must end with @gmail.com");
+    res.status(403).send({message:"Username must end with @gmail.com"});
   }else{
     next()
   }
