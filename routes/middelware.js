@@ -70,9 +70,19 @@ function checkUserName(req, res, next) {
   }
 }
 
+// rejects any request for task update with more that 140 characters
+function checkTaskLength(req, res, next){
+  if (req.body.task.length >140) {
+    res.status(403).send({message:"Forbidden. Task exceeds 140 characters"});
+  }else{
+    next();
+  }
+}
+
 module.exports = {
   checkJWTToken,
   changePasswordVerification,
   loginUser,
-  checkUserName
+  checkUserName,
+  checkTaskLength
 };

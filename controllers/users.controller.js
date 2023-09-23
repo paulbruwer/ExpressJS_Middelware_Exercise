@@ -14,12 +14,14 @@ const Lists = require("../models/Lists");
     }
   }
 
+  // get whole list of username specified in jwt token
   exports.getUserList = async (req, res) => {
     try {
       const thisUserList = await Lists.find({username:req.username});
-      res.send(thisUserList[0].todoList);
+      res.send({list:thisUserList[0].todoList});
     } catch (error) {
       console.log(error);
+      res.send({message:"Something went wrong while fetching your list"});
     }
   }
 
@@ -58,7 +60,8 @@ const Lists = require("../models/Lists");
   exports.userExists = async(req, res, next) => {
     try {
       const allUsers = await Users.find({});
-      const match = await allUsers.find(x => x.username === req.body.username).username;
+      const match = await allUsers.find(x => x.username === req.body.username);
+      console.log(`match ${match}`);
       if (match === undefined) {
         next()
       }else{
@@ -67,5 +70,69 @@ const Lists = require("../models/Lists");
     } catch (error) {
       console.log(error);
       res.send({message:"Something went wrong"})
+    }
+  }
+
+  // add task to list
+  exports.addTask = async(req, res, next) => {
+    try {
+      const user = await Lists.find({username:req.username});
+      const list = user[0].todoList;
+      list.push(req.body.task);
+      const result = await Lists.updateOne({username:req.username}, {todoList:list});
+      console.log(result);
+      res.send({message:"Task added successfully"});
+    } catch (error) {
+      console.log(error)
+      res.send({message:"Something went wrong"});
+    }
+  }
+
+  // check to see that the task number inside the request is a number
+  // and if the number exists in our list
+  exports.checkTaskNr = async(req, res, next) => {
+    if (isNaN(Number(req.body.taskNr))) {
+      res.status(403).send({message:"Please enter a number in the Task number field!"});
+    }else{
+      try {
+        const user = await Lists.find({username:req.username});
+        const list = user[0].todoList;
+        if (Number(req.body.taskNr) > list.length) {
+          res.send({message:"task number does not exist"})
+        }else{
+          next();
+        }
+      } catch (error) {
+        
+      }
+    }
+  }
+
+  // removes a specific task
+  exports.editTask = async(req, res, next) => {
+    try {
+      const user = await Lists.find({username:req.username});
+      const list = user[0].todoList;
+      list[Number(req.body.taskNr)-1] = req.body.task;
+      const result = await Lists.updateOne({username:req.username}, {todoList:list});
+      console.log(result);
+      res.send({message:"Task updated successfully"});
+    } catch (error) {
+      console.log(error)
+      res.send({message:"Something went wrong"});
+    }
+  }
+
+  // removes a task from the todo list of the user listed in the jwt token
+  exports.removeTask = async(req, res) => {
+    try {
+      const user = await Lists.find({username:req.username});
+      const list = user[0].todoList;
+      list.splice(Number(req.body.taskNr)-1, 1);
+      const result = await Lists.updateOne({username:req.username}, {todoList:list});
+      res.send({message:"Task removed successfully"});
+    } catch (error) {
+      console.log(error)
+      res.send({message:"Something went wrong"});
     }
   }
